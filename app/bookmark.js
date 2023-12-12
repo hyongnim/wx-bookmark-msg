@@ -44,9 +44,14 @@ module.exports = {
     return `<a data-miniprogram-appid="${MP_ID}" data-miniprogram-path="${path}">${label}</a>`;
   },
   onReply(acc, type) {
+    const sendMsg = acc.send.sendTxtMsg;
+    if (!type) {
+      sendMsg("暂未支持此消息类型");
+      return;
+    }
     if (type == "video") {
-      // 视频较大，节省服务器资源
-      acc.send.sendTxtMsg(`当前仅支持在${this.getMpLink()}中收藏视频`);
+      // 视频文件较大，为节省服务器资源
+      sendMsg(`当前仅支持在${this.getMpLink()}中收藏视频`);
       return;
     }
     this.saveMsg(acc, type); // 经测试，似乎无法使用await等待保存后回复消息
@@ -57,15 +62,11 @@ module.exports = {
       image: "图片",
       video: "视频",
     }[type];
-    if (!name) {
-      acc.send.sendTxtMsg("暂未支持此消息类型");
-      return;
-    }
     const msg = this.getMpLink(
       `${name}+1`,
       `/pages/index/index2?sid=1&type=${type}&from=index&msgId=${acc.msgId}&fromUser=${acc.fromUser}`
     );
-    acc.send.sendTxtMsg(msg);
+    sendMsg(msg);
   },
   async saveMsg(acc, type) {
     const {
@@ -76,7 +77,7 @@ module.exports = {
       mediaId,
       thumbMediaId: thumbId,
     } = acc;
-    const info = {
+    return this.postMsg({
       openid,
       createAt,
       type,
@@ -84,11 +85,7 @@ module.exports = {
       msgId,
       mediaId,
       thumbId,
-    };
-    if (!type) {
-      info.openid += "-1";
-    }
-    return this.postMsg(info);
+    });
   },
   async postMsg(body) {
     const res = await needle("post", API_BASE + "/data/upsert/wxmsg", body);

@@ -1,5 +1,5 @@
 const dotenv = require("dotenv");
-dotenv.config();
+dotenv.config(); // 本地读取.env，腾讯云托管在后台配置环境变量
 
 const Koa = require("koa");
 const Router = require("koa-router");
@@ -11,14 +11,16 @@ const bookmark = require("./app/bookmark");
 
 const appid = process.env.WX_APPID;
 
+// 公众号消息监听
 const wxApp = new Wetchat(bookmark.wxConfig);
 bookmark.listen(wxApp);
 
+const app = new Koa();
 const router = new Router();
 
 router.get("/", async (ctx) => {
   ctx.body = {
-    ver: "1.0.2", // git push前，可修改此版本号，部署后可对比确认已上线，todo：脚本自增并push
+    version: "1.0.3", // 每次部署前，可修改此版本号，部署后可对比确认已上线，todo：脚本自增并push
     appid, // 用于确认环境变量生效
   };
 });
@@ -32,8 +34,6 @@ router.all("/list/wxmsg", async (ctx) => {
   const data = await bookmark.getMsgList(query);
   ctx.body = data;
 });
-
-const app = new Koa();
 
 // 捕获错误，返回500状态和提示
 app.use(async (ctx, next) => {
