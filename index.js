@@ -4,7 +4,7 @@ dotenv.config(); // 本地读取.env，腾讯云托管在后台配置环境变�
 const Koa = require("koa");
 const Router = require("koa-router");
 const bodyParser = require("koa-bodyparser");
-// const Cors = require("koa2-cors");
+const Cors = require("koa2-cors");
 const XmlParser = require("koa-xml-body");
 const Wetchat = require("koa-wechat-public");
 const bookmark = require("./app/bookmark");
@@ -51,7 +51,7 @@ app.use(new XmlParser());
 router.all("/wechat", wxApp.start());
 
 app
-  // .use(Cors()) // 本地跨域调试
+  .use(Cors()) // 本地跨域调试
   .use(bodyParser())
   .use(router.routes())
   .use(router.allowedMethods());
